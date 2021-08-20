@@ -5,7 +5,10 @@ namespace WebBridge.Tools
     public class ConfigTool
     {
         private readonly string _webToken;
+        
         private readonly string _apiUrl;
+
+        public bool IsSendUpdateEvent { get; set; } = false;
 
         public ConfigTool(string configFilePath)
         {
@@ -37,10 +40,20 @@ namespace WebBridge.Tools
                 _apiUrl = doc.DocumentElement.SelectSingleNode("/Settings/ApiUrl")?.InnerText;
                 _webToken = doc.DocumentElement.SelectSingleNode("/Settings/WebToken")?.InnerText;
 
+                var sendUpdateEvent = doc.DocumentElement.SelectSingleNode("/Settings/IsSendUpdateEvent")?.InnerText;
+                IsSendUpdateEvent =  sendUpdateEvent?.ToLower() == "true" || sendUpdateEvent == "1";
+
                 return;
             }
 
             Log.Error($"WebBridge Mod failed read settings from {configFilePath}");
+        }
+
+        private void AddElement(XmlDocument doc, string name, string text)
+        {
+            XmlElement newElem = doc.CreateElement(name);
+            newElem.InnerText = text;
+            doc.DocumentElement?.AppendChild(newElem);
         }
 
         private void GenerateConfig(string configFilePath)
@@ -51,16 +64,9 @@ namespace WebBridge.Tools
 
                 doc.LoadXml("<Settings></Settings>");
 
-                XmlElement newElem = doc.CreateElement("ApiUrl");
-                newElem.InnerText = "https://localhost/api/v1/hooks";
-
-                doc.DocumentElement?.AppendChild(newElem);
-                
-                XmlElement newElemToken = doc.CreateElement("WebToken");
-
-                newElemToken.InnerText = "Don'tForgetReplaceThisToken";
-
-                doc.DocumentElement?.AppendChild(newElemToken);
+                AddElement(doc, "ApiUrl", "https://localhost/api/v1/hooks");
+                AddElement(doc, "WebToken", "Don't forget replace this token");
+                AddElement(doc, "IsSendUpdateEvent", "false");
 
                 XmlWriterSettings settings = new XmlWriterSettings {Indent = true};
                 XmlWriter writer = XmlWriter.Create(configFilePath, settings);

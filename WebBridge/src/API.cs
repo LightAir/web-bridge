@@ -14,11 +14,14 @@ namespace WebBridge
 
         private static readonly string ConfigFilePath = $"{GamePath}/Mods/WebBridge/WebBridge.xml";
 
+        private bool _isSendUpdateEvent;
+
         public void InitMod()
         {
             ConfigTool configTool = new ConfigTool(ConfigFilePath);
             HttpTool httpTool = new HttpTool(configTool.GetApiUrl(), configTool.GetWebToken());
 
+            _isSendUpdateEvent = configTool.IsSendUpdateEvent;
             _eventHooks = new EventHooks(httpTool);
 
             ModEvents.GameAwake.RegisterHandler(GameAwake);
@@ -75,7 +78,10 @@ namespace WebBridge
 
         private void GameUpdate()
         {
-            _eventHooks.HookGame(Enum.EnumGameState.GameUpdate);
+            if (_isSendUpdateEvent)
+            {
+                _eventHooks.HookGame(Enum.EnumGameState.GameUpdate);
+            }
         }
 
         /**
