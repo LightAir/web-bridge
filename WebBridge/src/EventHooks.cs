@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using JetBrains.Annotations;
 using WebBridge.Enum;
 using WebBridge.Tools;
 
@@ -9,13 +10,21 @@ namespace WebBridge
     {
         private readonly HttpTool _httpTool;
 
-        public EventHooks(HttpTool httpTool)
+        private readonly ConfigTool _configTool;
+
+        public EventHooks(HttpTool httpTool, ConfigTool configTool)
         {
             _httpTool = httpTool;
+            _configTool = configTool;
         }
 
-        private NameValueCollection ClientInfoAsNameValueCollection(ClientInfo clientInfo)
+        private NameValueCollection ClientInfoAsNameValueCollection([CanBeNull] ClientInfo clientInfo)
         {
+            if (clientInfo == null)
+            {
+                clientInfo = new ClientInfo();
+            }
+
             return new NameValueCollection()
             {
                 {"EntityID", clientInfo.entityId.ToString()},
@@ -82,7 +91,7 @@ namespace WebBridge
             );
         }
 
-        public void HookChat(
+        public bool HookChat(
             ClientInfo clientInfo,
             EChatType eChatType,
             int senderId,
@@ -99,7 +108,7 @@ namespace WebBridge
                 recipientEntityIdsString = recipientEntityIds.ToString();
             }
 
-            _httpTool.Post(new NameValueCollection()
+            var response = _httpTool.Post(new NameValueCollection()
                 {
                     ClientInfoAsNameValueCollection(clientInfo),
                     HookTypeNameValueCollection(EnumHookType.ChatHook),
@@ -111,11 +120,13 @@ namespace WebBridge
                     {"RecipientEntityIds", recipientEntityIdsString},
                 }
             );
+            
+            return IsMessageModerateAndOk(response);
         }
 
-        public void HookChat(EChatType eChatType, string message)
+        public bool HookChat(EChatType eChatType, string message)
         {
-            _httpTool.Post(new NameValueCollection()
+            var response = _httpTool.Post(new NameValueCollection()
                 {
                     ClientInfoAsNameValueCollection(null),
                     HookTypeNameValueCollection(EnumHookType.SystemChatHook),
@@ -127,34 +138,46 @@ namespace WebBridge
                     {"RecipientEntityIds", string.Empty},
                 }
             );
+
+            return IsMessageModerateAndOk(response);
+        }
+
+        private bool IsMessageModerateAndOk(string response)
+        {
+            if (!_configTool.IsMessageModerate)
+            {
+                return true;
+            }
+
+            return response == "ok";
         }
 
         public void HookKill(Entity entity, Entity entitySecond)
         {
-            string whoType = string.Empty;
-            string whomType = string.Empty;
-            string whoId = string.Empty;
-            string whomId = string.Empty;
+            string victimType = string.Empty;
+            string assailantType = string.Empty;
+            string victimId = string.Empty;
+            string assailantId = string.Empty;
 
             if (entity != null)
             {
-                whoType = entity.entityType.ToString();
-                whoId = entity.entityId.ToString();
+                victimType = entity.entityType.ToString();
+                victimId = entity.entityId.ToString();
             }
 
             if (entitySecond != null)
             {
-                whomType = entitySecond.entityType.ToString();
-                whomId = entitySecond.entityId.ToString();
+                assailantType = entitySecond.entityType.ToString();
+                assailantId = entitySecond.entityId.ToString();
             }
 
             _httpTool.Post(new NameValueCollection()
                 {
                     HookTypeNameValueCollection(EnumHookType.KillHook),
-                    {"WhoType", whoType},
-                    {"WhomType", whomType},
-                    {"WhoId", whoId},
-                    {"WhomId", whomId},
+                    {"victimId", victimId},
+                    {"victimType", victimType},
+                    {"AssailantId", assailantId},
+                    {"AssailantType", assailantType},
                 }
             );
         }

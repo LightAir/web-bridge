@@ -9,6 +9,7 @@ namespace WebBridge.Tools
         private readonly string _apiUrl;
 
         public bool IsSendUpdateEvent { get; set; } = false;
+        public bool IsMessageModerate { get; set; } = false;
 
         public ConfigTool(string configFilePath)
         {
@@ -40,13 +41,22 @@ namespace WebBridge.Tools
                 _apiUrl = doc.DocumentElement.SelectSingleNode("/Settings/ApiUrl")?.InnerText;
                 _webToken = doc.DocumentElement.SelectSingleNode("/Settings/WebToken")?.InnerText;
 
-                var sendUpdateEvent = doc.DocumentElement.SelectSingleNode("/Settings/IsSendUpdateEvent")?.InnerText;
-                IsSendUpdateEvent =  sendUpdateEvent?.ToLower() == "true" || sendUpdateEvent == "1";
+                var sendUpdateEventOption = doc.DocumentElement.SelectSingleNode("/Settings/IsSendUpdateEvent")?.InnerText;
+                var messageModerateOption = doc.DocumentElement.SelectSingleNode("/Settings/IsMessageModerate")?.InnerText;
 
+                IsSendUpdateEvent =  isOptionIsTrue(sendUpdateEventOption);
+
+                IsMessageModerate = isOptionIsTrue(messageModerateOption);
+                
                 return;
             }
 
             Log.Error($"WebBridge Mod failed read settings from {configFilePath}");
+        }
+
+        private bool isOptionIsTrue(string option)
+        {
+            return option?.ToLower() == "true" || option == "1";
         }
 
         private void AddElement(XmlDocument doc, string name, string text)
@@ -67,6 +77,7 @@ namespace WebBridge.Tools
                 AddElement(doc, "ApiUrl", "https://localhost/api/v1/hooks");
                 AddElement(doc, "WebToken", "Don't forget replace this token");
                 AddElement(doc, "IsSendUpdateEvent", "false");
+                AddElement(doc, "IsMessageModerate", "false");
 
                 XmlWriterSettings settings = new XmlWriterSettings {Indent = true};
                 XmlWriter writer = XmlWriter.Create(configFilePath, settings);

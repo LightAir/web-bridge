@@ -22,7 +22,7 @@ namespace WebBridge
             HttpTool httpTool = new HttpTool(configTool.GetApiUrl(), configTool.GetWebToken());
 
             _isSendUpdateEvent = configTool.IsSendUpdateEvent;
-            _eventHooks = new EventHooks(httpTool);
+            _eventHooks = new EventHooks(httpTool, configTool);
 
             ModEvents.GameAwake.RegisterHandler(GameAwake);
             ModEvents.GameStartDone.RegisterHandler(GameStartDone);
@@ -113,12 +113,10 @@ namespace WebBridge
         {
             if (clientInfo == null)
             {
-                _eventHooks.HookChat(eChatType, message);
-
-                return true;
+                return _eventHooks.HookChat(eChatType, message);
             }
 
-            _eventHooks.HookChat(
+            return _eventHooks.HookChat(
                 clientInfo,
                 eChatType,
                 senderId,
@@ -127,8 +125,6 @@ namespace WebBridge
                 localizeMain,
                 recipientEntityIds ?? new List<int>()
             );
-
-            return true;
         }
 
         private void EntityKilled(Entity entity1, Entity entity2)

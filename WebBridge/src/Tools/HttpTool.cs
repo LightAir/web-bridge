@@ -1,20 +1,22 @@
 using System.Collections.Specialized;
 using System.Net;
+using System.Text;
 
 namespace WebBridge.Tools
 {
     public class HttpTool
     {
         private readonly string _apiBaseUrl;
+
         private readonly string _apiToken;
 
         public HttpTool(string apiBaseUrl, string apiToken)
         {
-            this._apiBaseUrl = apiBaseUrl;
-            this._apiToken = apiToken;
+            _apiBaseUrl = apiBaseUrl;
+            _apiToken = apiToken;
         }
 
-        public void Post(NameValueCollection pairs)
+        public string Post(NameValueCollection pairs)
         {
             pairs.Add("Token", _apiToken);
 
@@ -23,7 +25,10 @@ namespace WebBridge.Tools
                 using (var client = new WebClient())
                 {
                     ServicePointManager.SecurityProtocol = (SecurityProtocolType) 3072;
-                    client.UploadValues(_apiBaseUrl, pairs);
+                    client.Headers.Add("Content-Type","application/x-www-form-urlencoded");
+                    byte[] response = client.UploadValues(_apiBaseUrl, pairs);
+
+                    return Encoding.ASCII.GetString(response);
                 }
             } catch (WebException webEx) {
                 Log.Out(webEx.ToString());
@@ -31,6 +36,8 @@ namespace WebBridge.Tools
                     Log.Out("Server running?");
                 }
             }
+
+            return null;
         }
     }
 }

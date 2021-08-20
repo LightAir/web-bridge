@@ -26,8 +26,15 @@ sudo apt-get install -y dotnet-sdk-3.1
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <Settings>
+  <!-- Эндпойнт хука вашего сервера -->
   <ApiUrl>http://localhost:5000/api/v1/hooks</ApiUrl>
+  <!-- Токен, по которому можно распознать как сервер, так и поддельные запросы -->
   <WebToken>Don'tForgetReplaceThisToken</WebToken>
+  <!-- Если опция установлена в true то мод шлёт так же события обновления -->
+  <IsSendUpdateEvent>false</IsSendUpdateEvent>
+  <!-- Если опция установлена в true то мод, для событий HookChat ожидает ответ 'ок' если -->
+  <!-- можно показать сообщенеи другим пользователям и что либо другое если нельзя -->
+  <IsMessageModerate>false</IsMessageModerate>
 </Settings>
 ```
 
