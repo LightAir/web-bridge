@@ -7,6 +7,7 @@ namespace WebBridge.Enum
         PlayerRespawnHook,
         ChatHook,
         SystemChatHook,
-        KillHook
+        KillHook,
+        DisconnectHook
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using WebBridge.Helpers;
 using WebBridge.Tools;
 
 namespace WebBridge
@@ -12,27 +11,31 @@ namespace WebBridge
         private EventHooks _eventHooks;
 
         private static readonly string GamePath = Directory.GetCurrentDirectory();
+
         private static readonly string ConfigFilePath = $"{GamePath}/Mods/WebBridge/WebBridge.xml";
 
         public void InitMod()
         {
-            ConfigHelper configHelper = new ConfigHelper(ConfigFilePath);
-            HttpHelper httpHelper = new HttpHelper(configHelper.GetApiUrl(), configHelper.GetWebToken());
+            ConfigTool configTool = new ConfigTool(ConfigFilePath);
+            HttpTool httpTool = new HttpTool(configTool.GetApiUrl(), configTool.GetWebToken());
 
-            _eventHooks = new EventHooks(httpHelper);
+            _eventHooks = new EventHooks(httpTool);
 
             ModEvents.GameAwake.RegisterHandler(GameAwake);
             ModEvents.GameStartDone.RegisterHandler(GameStartDone);
             ModEvents.GameShutdown.RegisterHandler(GameShutdown);
             ModEvents.GameMessage.RegisterHandler(GameMessage);
+            ModEvents.GameUpdate.RegisterHandler(GameUpdate);
 
             ModEvents.PlayerSpawnedInWorld.RegisterHandler(PlayerSpawnedInWorld);
+            ModEvents.PlayerDisconnected.RegisterHandler(PlayerDisconnected);
+
             ModEvents.ChatMessage.RegisterHandler(ChatMessage);
             ModEvents.EntityKilled.RegisterHandler(EntityKilled);
         }
 
         /**
-         * Runs once when the server is ready for interaction and GameManager.Instance.World is set
+         * Runs once, when the server is ready to communicate and the world instance (GameManager.Instance.World) is set
          */
         private void GameAwake()
         {
@@ -48,7 +51,7 @@ namespace WebBridge
         }
 
         /**
-         * runs once when the server is about to shut down
+         * Runs once when the server is about to shut down
          */
         private void GameShutdown()
         {
@@ -56,34 +59,36 @@ namespace WebBridge
         }
 
         private bool GameMessage(
-            ClientInfo _clientInfo,
-            EnumGameMessages _type,
-            string _msg,
-            string _mainName,
-            bool _localizeMain,
-            string _secondaryName,
-            bool _localizeSecondary
+            ClientInfo clientInfo,
+            EnumGameMessages enumGameMessages,
+            string message,
+            string mainName,
+            bool localizeMain,
+            string secondaryName,
+            bool localizeSecondary
         )
         {
-            _eventHooks.HookPlayer(
-                _clientInfo,
-                _type,
-                _msg,
-                _mainName,
-                _localizeMain,
-                _secondaryName,
-                _localizeSecondary
-            );
+            _eventHooks.HookPlayer(clientInfo, enumGameMessages, message, mainName, localizeMain, secondaryName, localizeSecondary);
 
             return true;
         }
 
-        /**
-         * runs each time a player spawns, including on login, respawn from death, and teleport
-         */
-        private void PlayerSpawnedInWorld(ClientInfo _clientInfo, RespawnType _respawnReason, Vector3i _pos)
+        private void GameUpdate()
         {
-            _eventHooks.HookPlayer(_clientInfo, _respawnReason, _pos);
+            _eventHooks.HookGame(Enum.EnumGameState.GameUpdate);
+        }
+
+        /**
+         * Runs every time a player is spawned, logged in, revived after death or teleportation
+         */
+        private void PlayerSpawnedInWorld(ClientInfo clientInfo, RespawnType respawnReason, Vector3i position)
+        {
+            _eventHooks.HookPlayer(clientInfo, respawnReason, position);
+        }
+
+        private void PlayerDisconnected(ClientInfo clientInfo, bool shutdown)
+        {
+            _eventHooks.HookPlayerDisconnected(clientInfo, shutdown);
         }
 
         /**
@@ -91,35 +96,38 @@ namespace WebBridge
          * return false to prevent the message from being passed on or output to chat
          */
         private bool ChatMessage(
-            ClientInfo _clientInfo,
-            EChatType _type,
-            int _senderId,
-            string _msg,
-            string _mainName,
-            bool _localizeMain,
-            List<int> _recipientEntityIds
+            ClientInfo clientInfo,
+            EChatType eChatType,
+            int senderId,
+            string message,
+            string mainName,
+            bool localizeMain,
+            List<int> recipientEntityIds
         )
         {
-            if (_clientInfo == null)
+            if (clientInfo == null)
             {
-                _eventHooks.HookChat(_type, _msg);
+                _eventHooks.HookChat(eChatType, message);
 
                 return true;
             }
 
-            if (_recipientEntityIds == null)
-            {
-                _recipientEntityIds = new List<int>();
-            }
-
-            _eventHooks.HookChat(_clientInfo, _type, _senderId, _msg, _mainName, _localizeMain, _recipientEntityIds);
+            _eventHooks.HookChat(
+                clientInfo,
+                eChatType,
+                senderId,
+                message,
+                mainName,
+                localizeMain,
+                recipientEntityIds ?? new List<int>()
+            );
 
             return true;
         }
 
-        private void EntityKilled(Entity _entity1, Entity _entity2)
+        private void EntityKilled(Entity entity1, Entity entity2)
         {
-            _eventHooks.HookKill(_entity1, _entity2);
+            _eventHooks.HookKill(entity1, entity2);
         }
     }
 }

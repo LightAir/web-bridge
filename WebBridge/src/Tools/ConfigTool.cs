@@ -1,33 +1,33 @@
 using System.Xml;
 
-namespace WebBridge.Helpers
+namespace WebBridge.Tools
 {
-    public class ConfigHelper
+    public class ConfigTool
     {
         private readonly string _webToken;
         private readonly string _apiUrl;
 
-        public ConfigHelper(string _configFilePath)
+        public ConfigTool(string configFilePath)
         {
             Log.Out("---------------------------");
             Log.Out("WebBridge Mod read settings");
             Log.Out("---------------------------");
 
-            if (!Utils.FileExists(_configFilePath))
+            if (!Utils.FileExists(configFilePath))
             {
-                GenerateConfig(_configFilePath);
-                Log.Error($"WebBridge Mod. Please, configure settings file {_configFilePath}");
+                GenerateConfig(configFilePath);
+                Log.Error($"WebBridge Mod. Please, configure settings file {configFilePath}");
             }
 
             XmlDocument doc = new XmlDocument();
 
             try
             {
-                doc.Load(_configFilePath);
+                doc.Load(configFilePath);
             }
             catch (XmlException e)
             {
-                Log.Error($"WebBridge Mod failed loading {_configFilePath}: {e.Message}");
+                Log.Error($"WebBridge Mod failed loading {configFilePath}: {e.Message}");
 
                 return;
             }
@@ -40,10 +40,10 @@ namespace WebBridge.Helpers
                 return;
             }
 
-            Log.Error($"WebBridge Mod failed read settings from {_configFilePath}");
+            Log.Error($"WebBridge Mod failed read settings from {configFilePath}");
         }
 
-        private void GenerateConfig(string _configFilePath)
+        private void GenerateConfig(string configFilePath)
         {
             try
             {
@@ -57,12 +57,13 @@ namespace WebBridge.Helpers
                 doc.DocumentElement?.AppendChild(newElem);
                 
                 XmlElement newElemToken = doc.CreateElement("WebToken");
+
                 newElemToken.InnerText = "Don'tForgetReplaceThisToken";
 
                 doc.DocumentElement?.AppendChild(newElemToken);
 
                 XmlWriterSettings settings = new XmlWriterSettings {Indent = true};
-                XmlWriter writer = XmlWriter.Create(_configFilePath, settings);
+                XmlWriter writer = XmlWriter.Create(configFilePath, settings);
 
                 doc.Save(writer);
             }
