@@ -22,7 +22,7 @@ namespace WebBridge
         {
             if (clientInfo == null)
             {
-                clientInfo = new ClientInfo();
+                return new NameValueCollection();
             }
 
             return new NameValueCollection()
