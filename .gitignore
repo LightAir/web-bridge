@@ -48,5 +48,6 @@ Temporary Items
 .vs
 \bin
 \obj
+!/WebBridge/Mods/WebBrige/WebBridge.dll
 *.dll
 \.idea
