@@ -5,6 +5,5 @@ namespace WebBridge.Enum
         GameAwake,
         StartDone,
         Shutdown,
-        GameUpdate
     }
 }

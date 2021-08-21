@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using WebBridge.Tools;
 
 namespace WebBridge
@@ -26,10 +27,11 @@ namespace WebBridge
 
             ModEvents.GameAwake.RegisterHandler(GameAwake);
             ModEvents.GameStartDone.RegisterHandler(GameStartDone);
-            ModEvents.GameShutdown.RegisterHandler(GameShutdown);
-            ModEvents.GameMessage.RegisterHandler(GameMessage);
             ModEvents.GameUpdate.RegisterHandler(GameUpdate);
+            ModEvents.GameMessage.RegisterHandler(GameMessage);
+            ModEvents.GameShutdown.RegisterHandler(GameShutdown);
 
+            ModEvents.PlayerLogin.RegisterHandler(PlayerLogin);
             ModEvents.PlayerSpawnedInWorld.RegisterHandler(PlayerSpawnedInWorld);
             ModEvents.PlayerDisconnected.RegisterHandler(PlayerDisconnected);
 
@@ -61,6 +63,9 @@ namespace WebBridge
             _eventHooks.HookGame(Enum.EnumGameState.Shutdown);
         }
 
+        /**
+         * Executed when a game event occurs
+         */
         private bool GameMessage(
             ClientInfo clientInfo,
             EnumGameMessages enumGameMessages,
@@ -80,8 +85,17 @@ namespace WebBridge
         {
             if (_isSendUpdateEvent)
             {
-                _eventHooks.HookGame(Enum.EnumGameState.GameUpdate);
+                _eventHooks.HookUpdate();
             }
+        }
+
+        /**
+         * Executed when the user tries to login.
+         * If the method returns false then the user will be Denied to logon to the server
+         */
+        private bool PlayerLogin(ClientInfo clientInfo, string compatibilityVersion, StringBuilder stringBuilder)
+        {
+            return _eventHooks.HookPlayerLogin(clientInfo, compatibilityVersion, stringBuilder);
         }
 
         /**
@@ -98,8 +112,9 @@ namespace WebBridge
         }
 
         /**
-         * return true to pass the message on to the next mod, or if no other mods then it will output to chat.
-         * return false to prevent the message from being passed on or output to chat
+         * Executed when the user or the system sends a message to the chat room.
+         * Return True to pass the message on to the next mod, or if no other mods then it will output to chat.
+         * Return False to prevent the message from being passed on or output to chat
          */
         private bool ChatMessage(
             ClientInfo clientInfo,
@@ -127,6 +142,9 @@ namespace WebBridge
             );
         }
 
+        /**
+         * Executed when the killed event occurred
+         */
         private void EntityKilled(Entity entity1, Entity entity2)
         {
             _eventHooks.HookKill(entity1, entity2);

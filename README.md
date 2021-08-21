@@ -35,6 +35,9 @@ sudo apt-get install -y dotnet-sdk-3.1
   <!-- Если опция установлена в true то мод, для событий HookChat ожидает ответ 'ок' если -->
   <!-- можно показать сообщенеи другим пользователям и что либо другое если нельзя -->
   <IsMessageModerate>false</IsMessageModerate>
+  <!-- Если опция установлена в true то мод, для событий PlayerLogin ожидает ответ 'ок' если -->
+  <!-- можно пустить пользователя на сервер и что либо другое если нельзя -->
+  <IsLoginControl>false</IsLoginControl>
 </Settings>
 ```
 
@@ -55,4 +58,16 @@ def hello_world():  # put application's code here
 if __name__ == '__main__':
     app.run()
 
+```
+
+Пример лога событий (Актуально для мода версии 1.5)
+```log
+ImmutableMultiDict([('HookType', 'GameHook'), ('MessageType', 'GameAwake'), ('Token', "Don't forget replace this token")])
+ImmutableMultiDict([('HookType', 'GameHook'), ('MessageType', 'StartDone'), ('Token', "Don't forget replace this token")])
+ImmutableMultiDict([('HookType', 'KillHook'), ('victimId', '235'), ('victimType', 'Unknown'), ('AssailantId', ''), ('AssailantType', ''), ('Token', "Don't forget replace this token")])
+ImmutableMultiDict([('HookType', 'PlayerHook'), ('MessageType', 'JoinedGame'), ('Message', ''), ('MainName', 'Player'), ('LocalizeMain', 'False'), ('SecondaryName', ''), ('LocalizeSecondary', 'False'), ('Token', "Don't forget replace this token")])
+ImmutableMultiDict([('EntityID', '171'), ('PlayerName', 'Player'), ('CompatibilityVersion', 'Alpha 19.6'), ('SteamID', '14741474147414741'), ('SteamOwnerID', '14741474147414741'), ('IP', '192.168.1.3'), ('Ping', '0'), ('HookType', 'PlayerRespawnHook'), ('RespawnType', 'JoinMultiplayer'), ('Position', '-1170,61,475'), ('Token', "Don't forget replace this token")])
+ImmutableMultiDict([('EntityID', '171'), ('PlayerName', 'Player'), ('CompatibilityVersion', 'Alpha 19.6'), ('SteamID', '14741474147414741'), ('SteamOwnerID', '14741474147414741'), ('IP', '192.168.1.3'), ('Ping', '0'), ('HookType', 'DisconnectHook'), ('Shutdown', 'False'), ('Token', "Don't forget replace this token")])
+ImmutableMultiDict([('HookType', 'PlayerHook'), ('MessageType', 'LeftGame'), ('Message', ''), ('MainName', 'Player'), ('LocalizeMain', 'False'), ('SecondaryName', ''), ('LocalizeSecondary', 'False'), ('Token', "Don't forget replace this token")])
+ImmutableMultiDict([('HookType', 'GameHook'), ('MessageType', 'Shutdown'), ('Token', "Don't forget replace this token")])
 ```

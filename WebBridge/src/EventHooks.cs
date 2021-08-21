@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Text;
 using JetBrains.Annotations;
 using WebBridge.Enum;
 using WebBridge.Tools;
@@ -49,8 +50,17 @@ namespace WebBridge
         {
             _httpTool.Post(new NameValueCollection()
                 {
-                    HookTypeNameValueCollection(EnumHookType.GameHook),
-                    {"MessageType", gameState.ToString()},
+                    HookTypeNameValueCollection(EnumHookType.Game),
+                    {"GameStateType", gameState.ToString()},
+                }
+            );
+        }
+
+        public void HookUpdate()
+        {
+            _httpTool.Post(new NameValueCollection()
+                {
+                    HookTypeNameValueCollection(EnumHookType.Update),
                 }
             );
         }
@@ -68,7 +78,7 @@ namespace WebBridge
             _httpTool.Post(new NameValueCollection()
                 {
                     ClientInfoAsNameValueCollection(clientInfo),
-                    HookTypeNameValueCollection(EnumHookType.PlayerHook),
+                    HookTypeNameValueCollection(EnumHookType.Player),
                     {"MessageType", enumGameMessages.ToString()},
                     {"Message", message ?? string.Empty},
                     {"MainName", mainName ?? string.Empty},
@@ -84,7 +94,7 @@ namespace WebBridge
             _httpTool.Post(new NameValueCollection()
                 {
                     ClientInfoAsNameValueCollection(clientInfo),
-                    HookTypeNameValueCollection(EnumHookType.PlayerRespawnHook),
+                    HookTypeNameValueCollection(EnumHookType.PlayerRespawn),
                     {"RespawnType", respawnType.ToString()},
                     {"Position", position.ToStringNoBlanks()},
                 }
@@ -111,7 +121,7 @@ namespace WebBridge
             var response = _httpTool.Post(new NameValueCollection()
                 {
                     ClientInfoAsNameValueCollection(clientInfo),
-                    HookTypeNameValueCollection(EnumHookType.ChatHook),
+                    HookTypeNameValueCollection(EnumHookType.Chat),
                     {"Message", message ?? string.Empty},
                     {"EChatType", eChatType.ToString()},
                     {"SenderId", senderId.ToString()},
@@ -129,7 +139,7 @@ namespace WebBridge
             var response = _httpTool.Post(new NameValueCollection()
                 {
                     ClientInfoAsNameValueCollection(null),
-                    HookTypeNameValueCollection(EnumHookType.SystemChatHook),
+                    HookTypeNameValueCollection(EnumHookType.SystemChat),
                     {"Message", message ?? string.Empty},
                     {"EChatType", eChatType.ToString()},
                     {"SenderId", string.Empty},
@@ -173,9 +183,9 @@ namespace WebBridge
 
             _httpTool.Post(new NameValueCollection()
                 {
-                    HookTypeNameValueCollection(EnumHookType.KillHook),
-                    {"victimId", victimId},
-                    {"victimType", victimType},
+                    HookTypeNameValueCollection(EnumHookType.Kill),
+                    {"VictimId", victimId},
+                    {"VictimType", victimType},
                     {"AssailantId", assailantId},
                     {"AssailantType", assailantType},
                 }
@@ -187,10 +197,29 @@ namespace WebBridge
             _httpTool.Post(new NameValueCollection()
                 {
                     ClientInfoAsNameValueCollection(clientInfo),
-                    HookTypeNameValueCollection(EnumHookType.DisconnectHook),
+                    HookTypeNameValueCollection(EnumHookType.Disconnect),
                     {"Shutdown", shutdown.ToString()},
                 }
             );
+        }
+
+        public bool HookPlayerLogin(ClientInfo clientInfo, string compatibilityVersion, StringBuilder stringBuilder)
+        {
+            var response = _httpTool.Post(new NameValueCollection()
+                {
+                    ClientInfoAsNameValueCollection(clientInfo),
+                    HookTypeNameValueCollection(EnumHookType.PlayerLogin),
+                    {"CoVersion", compatibilityVersion},
+                    {"StringBuilder", stringBuilder.ToString()},
+                }
+            );
+            
+            if (!_configTool.IsLoginControl)
+            {
+                return true;
+            }
+
+            return response == "ok";
         }
     }
 }

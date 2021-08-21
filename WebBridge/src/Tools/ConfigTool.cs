@@ -5,11 +5,12 @@ namespace WebBridge.Tools
     public class ConfigTool
     {
         private readonly string _webToken;
-        
+
         private readonly string _apiUrl;
 
-        public bool IsSendUpdateEvent { get; set; } = false;
-        public bool IsMessageModerate { get; set; } = false;
+        public bool IsSendUpdateEvent { get; }
+        public bool IsMessageModerate { get; }
+        public bool IsLoginControl { get; }
 
         public ConfigTool(string configFilePath)
         {
@@ -41,13 +42,13 @@ namespace WebBridge.Tools
                 _apiUrl = doc.DocumentElement.SelectSingleNode("/Settings/ApiUrl")?.InnerText;
                 _webToken = doc.DocumentElement.SelectSingleNode("/Settings/WebToken")?.InnerText;
 
-                var sendUpdateEventOption = doc.DocumentElement.SelectSingleNode("/Settings/IsSendUpdateEvent")?.InnerText;
-                var messageModerateOption = doc.DocumentElement.SelectSingleNode("/Settings/IsMessageModerate")?.InnerText;
+                IsSendUpdateEvent =
+                    isOptionIsTrue(doc.DocumentElement.SelectSingleNode("/Settings/IsSendUpdateEvent")?.InnerText);
+                IsMessageModerate =
+                    isOptionIsTrue(doc.DocumentElement.SelectSingleNode("/Settings/IsMessageModerate")?.InnerText);
+                IsLoginControl =
+                    isOptionIsTrue(doc.DocumentElement.SelectSingleNode("/Settings/IsLoginControl")?.InnerText);
 
-                IsSendUpdateEvent =  isOptionIsTrue(sendUpdateEventOption);
-
-                IsMessageModerate = isOptionIsTrue(messageModerateOption);
-                
                 return;
             }
 
@@ -78,6 +79,7 @@ namespace WebBridge.Tools
                 AddElement(doc, "WebToken", "Don't forget replace this token");
                 AddElement(doc, "IsSendUpdateEvent", "false");
                 AddElement(doc, "IsMessageModerate", "false");
+                AddElement(doc, "IsLoginControl", "false");
 
                 XmlWriterSettings settings = new XmlWriterSettings {Indent = true};
                 XmlWriter writer = XmlWriter.Create(configFilePath, settings);
